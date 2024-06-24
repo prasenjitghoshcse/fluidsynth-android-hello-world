@@ -4,13 +4,25 @@
 # Sets the minimum version of CMake required to build the native library.
 cmake_minimum_required(VERSION 3.4.1)
 
+
 # Create a variable fluidsynth_DIR to specify where the fluidsynth library is located.
 set(fluidsynth_DIR ${CMAKE_CURRENT_SOURCE_DIR}/fluidsynth)
 
-# Our code (native-lib.cpp) will be calling fluidsynth functions, so we add the fluidsynth binaries as dependencies of our code.
+# Create a variable lib_other_DIR to specify where the other non-fluidsynth libraries is located.
+set(lib_other_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib_other)
+
+
+# Fluidsynth library code will be calling some non-fluidsynth functions which are not part of
+# default NDK, so we add the binaries as dependencies of our code.
 
 add_library(libc++_shared SHARED IMPORTED)
-set_target_properties(libc++_shared PROPERTIES IMPORTED_LOCATION ${fluidsynth_DIR}/lib/${ANDROID_ABI}/libc++_shared.so)
+set_target_properties(libc++_shared PROPERTIES IMPORTED_LOCATION ${lib_other_DIR}/${ANDROID_ABI}/libc++_shared.so)
+
+add_library(libomp SHARED IMPORTED)
+set_target_properties(libomp PROPERTIES IMPORTED_LOCATION ${lib_other_DIR}/${ANDROID_ABI}/libomp.so)
+
+
+# Our code (native-lib.cpp) will be calling fluidsynth functions, so we add the fluidsynth binaries as dependencies of our code.
 
 add_library(libFLAC SHARED IMPORTED)
 set_target_properties(libFLAC PROPERTIES IMPORTED_LOCATION ${fluidsynth_DIR}/lib/${ANDROID_ABI}/libFLAC.so)
@@ -45,9 +57,6 @@ set_target_properties(liboboe PROPERTIES IMPORTED_LOCATION ${fluidsynth_DIR}/lib
 add_library(libogg SHARED IMPORTED)
 set_target_properties(libogg PROPERTIES IMPORTED_LOCATION ${fluidsynth_DIR}/lib/${ANDROID_ABI}/libogg.so)
 
-add_library(libomp SHARED IMPORTED)
-set_target_properties(libomp PROPERTIES IMPORTED_LOCATION ${fluidsynth_DIR}/lib/${ANDROID_ABI}/libomp.so)
-
 add_library(libopus SHARED IMPORTED)
 set_target_properties(libopus PROPERTIES IMPORTED_LOCATION ${fluidsynth_DIR}/lib/${ANDROID_ABI}/libopus.so)
 
@@ -66,35 +75,39 @@ set_target_properties(libvorbisenc PROPERTIES IMPORTED_LOCATION ${fluidsynth_DIR
 add_library(libvorbisfile SHARED IMPORTED)
 set_target_properties(libvorbisfile PROPERTIES IMPORTED_LOCATION ${fluidsynth_DIR}/lib/${ANDROID_ABI}/libvorbisfile.so)
 
-add_library(preloadable_libiconv SHARED IMPORTED)
-set_target_properties(preloadable_libiconv PROPERTIES IMPORTED_LOCATION ${fluidsynth_DIR}/lib/${ANDROID_ABI}/preloadable_libiconv.so)
 
 # Library that will be called directly from JAVA
 add_library(native-lib SHARED native-lib.cpp)
 
-# Specifies the directory where the C or C++ source coude will look the #include <yourlibrary.h> header files
+
+# Specifies the directory where the C or C++ source code will look the #include <yourlibrary.h> header files
 target_include_directories(native-lib PRIVATE ${fluidsynth_DIR}/include)
 
-# Link everything alltogether. Notice that native-lib should be the first element in the list.
+
+# Link everything all together. Notice that native-lib should be the first element in the list.
 target_link_libraries(
-        native-lib
-        libc++_shared
-        libFLAC
-        libfluidsynth
-        libfluidsynth-assetloader
-        libgio-2.0
-        libglib-2.0
-        libgmodule-2.0
-        libgobject-2.0
-        libgthread-2.0
-        libinstpatch-1.0
-        liboboe
-        libogg
-        libomp
-        libopus
-        libpcre
-        libsndfile
-        libvorbis
-        libvorbisenc
-        libvorbisfile
+    native-lib
+
+    # Non-fluidsynth binaries
+    libc++_shared
+    libomp
+
+    # fluidsynth binaries
+    libFLAC
+    libfluidsynth
+    libfluidsynth-assetloader
+    libgio-2.0
+    libglib-2.0
+    libgmodule-2.0
+    libgobject-2.0
+    libgthread-2.0
+    libinstpatch-1.0
+    liboboe
+    libogg
+    libopus
+    libpcre
+    libsndfile
+    libvorbis
+    libvorbisenc
+    libvorbisfile
 )
